@@ -1,0 +1,53 @@
+#Here is my code manipulating made up data from 2016 poll election votes.
+#Please see my blog for the full explanation at https://explorationsinr.wordpress.com/
+#Ok, here we go. 
+
+#Run the same procedure as outline here by applying the data set below. 
+#This data set was taken from last year election where it outlined the name of the candidate, 
+#the source of the poll (ABC vs, CBS). Discuss your result in your blog. 
+#Important note, I made up this data, so it does not reflect what really happened in the election.
+# Name <- c("Jeb", “Donald”, "Ted”, “Marco” “Carly”, “Hillary”, “Berine”)
+#> ABC political poll results <- c(4, 62, 51, 21, 2, 14, 15)
+#> CBS political poll results <- c(12, 75, 43, 19, 1, 21, 19)
+
+#################################################
+########### Create the vectors ##################
+#################################################
+
+name <- c("Jeb", "Donald", "Ted" , "Marco" , "Carly" , "Hillary" , "Bernie")
+#> name 
+#[1] "Jeb"     "Donald"  "Ted"     "Marco"   "Carly"   "Hillary" "Bernie" 
+
+ABC_presults<- c(4, 62, 51, 21, 2, 14, 15)
+#> ABC_presults
+#[1]  4 62 51 21  2 14 15
+
+CBS_presults <- c(12, 75, 43, 19, 1, 21, 19)
+#> CBS_presults
+#[1] 12 75 43 19  1 21 19
+
+##################################################
+############ Create a Data Frame #################
+##################################################
+
+candidate_presults <- data.frame(name , CBS_presults , ABC_presults)
+#> candidate_presults
+#     name CBS_presults ABC_presults
+#1     Jeb           12           4
+#2  Donald           75          62
+#3     Ted           43          51
+#4   Marco           19          21
+#5   Carly            1           2
+#6 Hillary           21          14
+#7  Bernie           19          15
+
+###############################################
+######### Find the mean per column ############
+###############################################
+
+mean_col <- colMeans(candidate_presults[2:3])
+#CBS_presults ABC_presults 
+#    27.14286     24.14286 
+
+
+
