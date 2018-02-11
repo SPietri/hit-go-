@@ -1,0 +1,172 @@
+# The package dplyr is one of the most useful tools for 
+# inspecting data. This play around session will provide 
+# you with examples of the basic functions and their uses 
+# in dyplr. This is based on a Udemy exercise. 
+# OK, let's get started. 
+
+##############################################################
+##############################################################
+
+# The first step of course, is to down load the package. 
+install.packages("dplyr")
+library("dplyr")
+
+# Let's also download a data set from it.
+b <- head(as.data.frame(nasa), 25)
+b
+# In the code above I (starting fom the inside out):
+# 1) called nasa data set and made it into a data frame
+# 2) used head() command to get the first 25 rows. 
+# 3) renamed that selection from the data "b"
+
+##############################################################
+##############################################################
+
+# Exercise 1: Return rows of the nasa data that have ozone 
+# greater than 295 and the year equal 1995. Use head().
+head(filter(b, ozone > 295, year == 1995))
+
+# What just happened: 
+# 1) used the filter command
+# 2) head() to get first 6 observations
+
+# The filter function in dplyr allows us to select a subset
+# of row. The code for this is:
+# filter(data_set, colname w/ conditional statement)
+
+#############################################################
+#############################################################
+
+# Exercise 2: Reorder the data frame cloudlow and then by 
+# decending pressure. 
+head(arrange(b, cloudlow)) 
+head(arrange(b, desc(pressure)))
+
+# The arrange function allows you to arrange the data in rows
+# The default is ascending. 
+
+#############################################################
+#############################################################
+
+# Exercise 3: Select the columns lat and surftemp.
+head(select(b, lat, surftemp))
+
+#The select() command allows you to select any column. 
+# The code is: 
+# select(data_set, column that you want, column that you 
+# want)
+
+#############################################################
+#############################################################
+
+# Exercise 4: Select the disticnt values in the year column.
+# Then select the distinct values in the ozone column. 
+distinct(b, year)
+distinct(b, ozone)
+
+# The distinct() command allows you to find the unique 
+# values per column in a data set. 
+
+# It appears all the data we have subsetted is from 1995.
+# Lets go back and check out original data set to see if 
+# There are any other years in which data was gathered. 
+distinct(as.data.frame(nasa), year)
+
+# When we do this we can see that data was gathered over 5
+# years. It also tells me that our head() sample is not that
+# representative and probally missing a lot of information. 
+# This can be solved with a function discussed later. 
+
+#############################################################
+#############################################################
+
+# Exercise 5: Create a new colum called ration that is the
+# ratio of surftemp to temperature. 
+head(round(mutate(b, ratio = surftemp/temperature), 
+           digits = 2))
+
+# Working from the inside out: 
+# 1) used the mutate() command
+# 2) used the round command to have 2 digits after the 
+#    decimal
+# 3) used head to return the first 6 observations
+
+# The mutate() command allows you to create a new column 
+# based on a function using 2 colums or on a function 
+# performed on a column in the data set. 
+
+# The code is input as: 
+# mutate(data_set, new column name = function performing)
+
+# mutate() returns the entire data set with the new column 
+# you created included. If you want just the colum you 
+# created back you can use the transmute() command. 
+transmute(b, ratio = surftemp/temperature) 
+
+#############################################################
+#############################################################
+
+# Exercise 6: Find the mean cloudlow value using summarise 
+summarise(b, avg_cloudlow = mean(cloudlow))
+
+# The summarise() command allows you to create a new column 
+# based on the function that you perform on a column. 
+
+# The code is: 
+# summarise(b, new column name = function(column being
+# performed on))
+
+##############################################################
+##############################################################
+
+# Exercise 7: Use the pipe operator to get the mean value of 
+# the tempeature column that have pressure values of 1000. 
+
+b %>% filter(pressure == 1000) %>% summarise(avg_temp
+                                              = mean
+                                             (temperature)) 
+# So what did this just do? We are not starting from the
+# inside out. 
+# 1) select data frame
+# 2) use pipe operator
+# 3) use filter function to slect only observations that have
+#    pressure equal to 1000
+# 4) use pipe operator
+# 5) use summarise() command to name a new column avg_temp and
+#    make it equal to the mean() temperature of the selected 
+#    observations in step 3. 
+
+# The reason we didn't have to read it from the inside out is
+# because the pipe operator (%>%) allows us to chain together 
+# operation after operation so we can avoid nestiong (putting
+# functions inside of functions). 
+
+##############################################################
+##############################################################
+
+# Exercise 7: Use a command in dplyr to get a more representa-
+# tive sample out of the nasa data set. 
+
+# Two cool functions in dyplr for this are:
+# 1) sample_n() this selects a random sampled based on the 
+#    number you set.
+# 2) sample_frac() same as sample_n() except is selects a 
+#    portion of the data set. 
+
+# Let's turn nasa into a data frame to make it easier to work 
+# with.
+nasa_df <- as.data.frame(nasa)
+
+c <- sample_n(nasa_df, size = 10)
+c
+# The above code worked! notice how we have randomly 
+# drawn data from all years and months. 
+
+d <- sample_frac(nasa_df, 0.0004)
+d
+# Wow! This is a large data set. So, if you notice above 
+# fractions are written as decimals. I selected .04% of
+# of the data and it returned 17 observations (rows). 
+
+##############################################################
+##############################################################
