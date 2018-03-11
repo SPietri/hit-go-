@@ -1,0 +1,135 @@
+
+### Udemy Linear Regression ###
+###############################
+library(ggplot2)
+library(ggthemes)
+library(dplyr)
+library(corrgram)
+library(corrplot)
+library(caTools)
+
+#####################
+### Get the Data  ###
+#####################
+mat <- read.csv('student-mat.csv',sep=';')
+head(mat)
+summary(mat)
+
+attributes(mat)
+# This allows us to pull up the names of the colums i.e. variables. 
+# For this we are just exploring but we are concerned with 
+# G1 G2 and G3 because those are out test grade. We will try to 
+# predict G3 eventually. 
+
+######################
+### Clean The Data ###
+######################
+# Step 1: check for NA 
+any(is.na(mat))
+
+# Step 2: Look to make sure that if you want to change factors to int
+# or vise versa. That what you expect to be characters are characters
+# etc. 
+str(mat)
+
+#################################
+### Exploratory Data Analysis ###
+#################################
+
+# In order to create a corllagram (correlation plot) we need to 
+# find all the numerical columns.
+# Using sapply because it will apply an entire function over a vector.
+mat.num <- sapply(mat, is.numeric)
+
+# Now we want to pull all the correlation data between the numerical
+# columns. This will produce a chart with well, a buch of correlation
+# statistics. It isn't pleasing to the eye. 
+mat.cor <- cor(mat[ , mat.num])
+
+# Visualize the data: 
+corrplot(mat.cor, method = "color")
+# We read this by the darker the box, the stronger the correlation. We see the test
+# grades have a strong correlation. 
+
+#Split into Test/ Train data
+set.seed(101) 
+
+# Split up the sample, basically randomly assigns a booleans to a new 
+# column "sample"
+sample <- sample.split(mat$age, SplitRatio = 0.70) 
+# SplitRatio = percent of sample==TRUE
+
+# Training Data
+train <- subset(mat, sample == TRUE)
+
+# Testing Data
+test <- subset(mat, sample == FALSE)
+
+# Create a Linear Model for training: 
+model <- lm(G3 ~ .,train)
+summary(model)
+
+# Let's Test our model! 
+G3.predictions <- predict(model, test)
+results <- cbind(G3.predictions, test$G3)
+colnames(results) <- c("predicted", "actual")
+results<- as.data.frame(results)
+head(results)
+
+
+####################################################
+### Machine Learning Project : Linear Regression ###
+####################################################
+# From Kaggle Bike Challange Guided Exercise
+# Target: number of bikes rented per hour
+
+bike <- read.csv("bikeshare.csv")
+head(bike)
+
+# Create Scatter Plot of Count vs. Temp:
+ggplot(bike, aes(x= temp, y= count))+ geom_point(aes(color= temp),alpha=.2)
+
+# Plot count versus datetime as a scatterplot with a color gradient based on 
+# temperature. You'll need to convert the datetime column into POSIXct before 
+# plotting.
+as.POSIXct(bike$datetime)
+ggplot(bike, aes(x= datetime, y= count))+ geom_point(
+  aes(color= temp),alpha=.2)+ scale_color_gradient(
+    low = "blue", high = "orange")
+
+# Correlation between Temp and Count:
+cor(bike[ , c(6,12)])
+
+# Creat a box and whisker plot:
+ggplot(bike, aes(x= as.factor(season), y= count, 
+                 color= as.factor(season)))+ geom_boxplot()
+
+# Creat an Hour Column: 
+time.stamp <- strptime(bike$datetime, format = "%Y-%m-%d %H:%M:%S")
+hour <- format(time.stamp, "%H")
+bike <- cbind(bike, hour)
+head(bike)
+
+#Now create a scatterplot of count versus hour, with color scale based on 
+#temp. Only use bike data where workingday==1.
+wd1 <- subset(bike, workingday==1)
+wd1
+ggplot(wd1, aes(x = hour, y= count))+geom_point(
+  aes(color = temp), alpha =.2,position=position_jitter(w=1, h=0))+ scale_color_gradientn(
+    colors= c("red","orange","yellow", "green", "blue","violet"))
+
+###################
+### Build Model ###
+###################
+# Use lm() to build a model that predicts count based solely on the temp 
+# feature, name it temp.model
+temp.model <- lm(count ~ temp, bike)
+summary(temp.model)                                                               
+
+# How many bike rentals would we predict if the temperature was 25 degrees 
+# Celsius? 
+# Using the statistics above: 
+6.04623 + (9.17*25)
+temp.test<- data.frame(temp=c(25))
+predict(temp.model, temp.test)
+
