@@ -1,0 +1,169 @@
+#################################
+### Udemy: Money Ball Project ###
+#################################
+
+# Read in the data: 
+setwd("C:/Users/pietr/Desktop/Data")
+batting <- read.csv('Batting.csv')
+
+# Examine the data:
+head(batting)
+str(batting)
+class(batting)
+head(batting$AB, 6)
+head(batting$X2B)
+
+###########################
+### Feature Engineering ###
+###########################
+
+# Batting average: 
+# batting average = hits / at base
+# In the data frame hits is represented by (H)
+# at base is represented by (AB)
+batting$BA <- (batting$H/batting$AB)
+
+# On Base Percentage: 
+# Refered to as OBP
+# A.K.A On Base Average
+# Measures how frequently a batter reaches a base. It is the ratio between
+# times on base which includes the sum of hits, walks, and times hit by 
+# pitch, to the number of appearences the player makes on base. 
+# Formula: 
+# OBP=(H+BB+HBP)/(AB+BB+HBP+SF)
+# Per Wikepedia:
+# H = Hits
+# BB = Bases on Balls (Walks)
+# HBP = Hit By Pitch
+# AB = At bat
+# SF = Sacrifice fly
+# Sacrifice fly because  batter presumably intends to allow a teammate 
+# to score a run, while sacrificing his own ability to do so. 
+attach(batting)
+batting$OBP <- ((H+BB+HBP)/(AB+BB +HBP+SF))
+
+# Slugging Percentage: 
+# This is the measure of the batting productivity of the hitter. 
+# Per Wikepedia: 
+# It is calculated as total bases divided by at bats, through the 
+# following formula, where AB is the number of at-bats for a given player,
+# and 1B, 2B, 3B, and HR are the number of singles, doubles, triples, 
+# and home runs. 
+# Formula: 
+# SLG = (1B +(2 * 2B)+ (3 *3B) + (4 *HR))/ AB
+# 1B refers to singles and they aren't ususally reported.
+# We have to create the singles by:
+# total hits - (home runs + triples + doubles)
+X1B <- (H - (HR + X2B + X3B))
+cbind(batting, X1B)
+batting$SLG <- (X1B +(2 * X2B)+ (3 *X3B) + (4 *HR))/ AB
+batting$Bat_Avg <- NULL
+
+######################################
+### Merge Salary with Batting Data ###
+######################################
+sal <- read.csv("Salaries.csv")
+summary(batting)
+summary(sal)
+
+# Subset the batting data so it doesn't contain information with years 
+# before 1985.
+library(dplyr)
+bat1985 <- filter(batting, yearID >= 1985)
+summary(bat1985)
+# bat1985 contains informatiopn from years 1985 and after. 
+
+# Merge the data sets: 
+# Merging by playerID and yearID because some players have played for years
+combo <- merge(bat1985, sal, by = c('playerID', 'yearID'))
+summary(combo)
+
+##################################
+### Analyzing the Lost Players ###
+##################################
+# Create a subset of the Lost Boys:
+# To do this I am going to use %in% function. This will allow me to test
+# a single variable being equal to the elements in a list. 
+# See: https://stats.idre.ucla.edu/r/modules/subsetting-data/
+lost_players <- filter(combo, playerID %in% 
+                         c("giambja01", "damonjo01", "saenzol01"))
+head(lost_players)
+
+# Re-define lost_players: 
+# The players were lost in 2001 so find rows for that year. 
+lost_players <- filter(combo, playerID %in% 
+                   c("giambja01", "damonjo01", "saenzol01"), 
+                 yearID == 2001)
+
+# Redefine lost players again: 
+# Only want the variables playerID,H,X2B,X3B,HR,OBP,SLG,BA,AB
+lost_players <- select(lost_players, 
+                       c(playerID,H,X2B,X3B,HR,OBP,SLG,BA,AB))
+
+################################
+### Find Replacement Players ###
+################################
+# Find Replacement Players for the key three players we lost!
+# However, you have three constraints:
+  
+# 1) The total combined salary of the three players can not exceed 
+#   15 million dollars.
+# 2) Their combined number of At Bats (AB) needs to be equal to 
+#    or greater than the lost players.
+# 3) Their mean OBP had to equal to or greater than the mean OBP of 
+#    the lost players
+
+# First, I subset the combo data for only the 2001 players. 
+combo2001 <- filter(combo, yearID ==2001)
+mean(lost_players$AB)
+#489.6667
+mean(lost_players$OBP)
+#0.3638687
+library("dplyr", lib.loc="~/R/win-library/3.4")
+maybe <- filter(combo2001,(AB< 500), (AB > 450), 
+  (OBP < .400),(OBP >.300), salary<8000000)
+maybe.subset <- arrange(maybe, desc(OBP))
+head(maybe.subset[, c("playerID", "AB", "OBP", "salary")])
+
+
+
+
+
+
+
+
+
+
+
+
+# Function to create the players list in a random sample in threes
+# Want to also print the stats of lost players to input into funtion b. 
+#a <- function(combo2001, lost_players, n){
+#  player <- sample_n(combo2001, 3)
+# print(player)
+#  attach(lost_players)
+#  print(lost_players)
+#  salarylp <- n
+#  return(salarylp)
+#  numberlp <- sum(lost_players$AB)
+#  print(numberlp)
+#  meanlp <- mean(lost_players$OBP)
+#  print(meanlp)
+#   }
+
+ 
+# Function b was to use an if statement and get combinations of the 
+# players that fit our criteria. 
+#b <- function(player, salarylp, numberlp, meanlp){
+#  attach(player)
+#  sum(player$salary) 
+#  if(sum(player$salary) <= salarylp){
+#    sum(player$AB)
+#    if(sum(player$AB) >= numberlp)
+#      {mean(player$OBP) 
+#      if(mean(player$OBP) >= meanlp){
+#        print(player$playerID)}
+#    }
+#  } 
+#  else{print("no")}
+#  }
